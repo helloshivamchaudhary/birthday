@@ -3,14 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Birthday Ultimate V4</title>
+<title>Happy Birthday Deepika - Ultimate V4</title>
 <style>
 body{margin:0;background:#120826;color:#fff;font-family:Arial;text-align:center;overflow:hidden}
-.candle{width:100px;height:250px;background:linear-gradient(#ffe082,#ffc107);margin:100px auto;border-radius:15px;position:relative}
-.wick{position:absolute;top:-15px;left:48px;width:4px;height:18px;background:#222}
-.flame{position:absolute;top:-70px;left:20px;font-size:60px;animation:f .15s infinite alternate}
-@keyframes f{from{transform:rotate(-3deg)}to{transform:rotate(3deg)}}
 #wish,#videoContainer,#cameraSection{display:none}
+.candle{width:90px;height:240px;background:linear-gradient(#ffe082,#ffc107);margin:80px auto;border-radius:15px;position:relative}
+.wick{position:absolute;top:-15px;left:43px;width:4px;height:18px;background:#222}
+.flame{position:absolute;top:-65px;left:15px;font-size:60px;animation:flicker .15s infinite alternate}
+@keyframes flicker{from{transform:rotate(-3deg)}to{transform:rotate(3deg)}}
 video,canvas{max-width:95vw;border-radius:12px}
 .frame{position:absolute;inset:0;border:10px solid gold;border-radius:12px;pointer-events:none}
 </style>
@@ -22,7 +22,8 @@ video,canvas{max-width:95vw;border-radius:12px}
 </div>
 
 <div id="wish">
-<h1>🎉 HAPPY BIRTHDAY DEEPAK 🎂</h1>
+<h1>🎉 HAPPY BIRTHDAY DEEPIKA 🎂</h1>
+<h3>May your day be filled with happiness, love and joy ✨</h3>
 </div>
 
 <div id="videoContainer">
@@ -36,37 +37,44 @@ video,canvas{max-width:95vw;border-radius:12px}
 <div style="position:relative;display:inline-block">
 <video id="cam" autoplay playsinline></video>
 <div class="frame"></div>
+<div style="position:absolute;top:10px;left:0;right:0;color:gold;font-weight:bold">👑 HAPPY BIRTHDAY DEEPIKA 👑</div>
+<div id="info" style="position:absolute;bottom:10px;left:0;right:0"></div>
 </div>
-<canvas id="canvas"></canvas><br>
-<a id="downloadBtn">Download Photo</a>
+<br><canvas id="canvas"></canvas><br>
+<a id="downloadBtn">💾 Download Birthday Photo</a>
 </div>
 
 <script>
 function startParty(){
- if(navigator.vibrate) navigator.vibrate([200,100,200]);
+ if(navigator.vibrate) navigator.vibrate([200,100,200,100,500]);
  document.getElementById('candleScene').style.display='none';
  document.getElementById('wish').style.display='block';
+
  setTimeout(()=>{
    document.getElementById('wish').style.display='none';
    document.getElementById('videoContainer').style.display='block';
-   let v=document.getElementById('birthdayVideo');
-   v.onended=()=>{document.getElementById('videoContainer').style.display='none';openCamera();}
+   const v=document.getElementById('birthdayVideo');
+   v.play().catch(()=>{});
+   v.onended=()=>{
+      document.getElementById('videoContainer').style.display='none';
+      openCamera();
+   };
  },1500);
 }
 
 async function startMic(){
  try{
- const s=await navigator.mediaDevices.getUserMedia({audio:true});
- const c=new (window.AudioContext||window.webkitAudioContext)();
- const a=c.createAnalyser();
- c.createMediaStreamSource(s).connect(a);
- const d=new Uint8Array(a.frequencyBinCount);
- (function chk(){
-   a.getByteFrequencyData(d);
-   let avg=d.reduce((x,y)=>x+y,0)/d.length;
-   if(avg>35){s.getTracks().forEach(t=>t.stop());startParty();return;}
-   requestAnimationFrame(chk);
- })();
+  const s=await navigator.mediaDevices.getUserMedia({audio:true});
+  const ctx=new (window.AudioContext||window.webkitAudioContext)();
+  const a=ctx.createAnalyser();
+  ctx.createMediaStreamSource(s).connect(a);
+  const d=new Uint8Array(a.frequencyBinCount);
+  (function check(){
+    a.getByteFrequencyData(d);
+    let avg=d.reduce((x,y)=>x+y,0)/d.length;
+    if(avg>35){s.getTracks().forEach(t=>t.stop());startParty();return;}
+    requestAnimationFrame(check);
+  })();
  }catch(e){}
 }
 
@@ -74,25 +82,39 @@ async function openCamera(){
  document.getElementById('cameraSection').style.display='block';
  const s=await navigator.mediaDevices.getUserMedia({video:true});
  cam.srcObject=s;
- let n=3; countdown.innerText=n;
+
+ navigator.geolocation.getCurrentPosition((p)=>{
+   info.innerHTML='📍 '+p.coords.latitude.toFixed(4)+','+p.coords.longitude.toFixed(4)+'<br>⏰ '+new Date().toLocaleString();
+ });
+
+ let n=3;
+ countdown.innerText=n;
  let t=setInterval(()=>{
-  n--; countdown.innerText=n>0?n:'📸';
-  if(n<0){clearInterval(t);capturePhoto();}
+   n--;
+   countdown.innerText=n>0?n:'📸';
+   if(n<0){clearInterval(t);capturePhoto();}
  },1000);
 }
 
 function capturePhoto(){
- canvas.width=cam.videoWidth; canvas.height=cam.videoHeight;
- let ctx=canvas.getContext('2d');
+ canvas.width=cam.videoWidth;
+ canvas.height=cam.videoHeight;
+ const ctx=canvas.getContext('2d');
  ctx.drawImage(cam,0,0);
- ctx.strokeStyle='gold'; ctx.lineWidth=10;
+ ctx.strokeStyle='gold';
+ ctx.lineWidth=10;
  ctx.strokeRect(0,0,canvas.width,canvas.height);
- ctx.fillStyle='gold'; ctx.font='28px Arial';
- ctx.fillText('HAPPY BIRTHDAY DEEPAK',20,40);
+ ctx.fillStyle='gold';
+ ctx.font='26px Arial';
+ ctx.fillText('👑 HAPPY BIRTHDAY DEEPIKA 👑',20,40);
+ ctx.fillStyle='white';
+ ctx.fillText(new Date().toLocaleString(),20,80);
+
  downloadBtn.href=canvas.toDataURL('image/png');
- downloadBtn.download='BirthdayPhoto.png';
+ downloadBtn.download='Deepika_Birthday.png';
 }
 
 window.onload=startMic;
 </script>
-</body></html>
+</body>
+</html>
