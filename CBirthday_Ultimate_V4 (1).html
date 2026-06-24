@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Birthday Ultimate V4</title>
+<style>
+body{margin:0;background:#120826;color:#fff;font-family:Arial;text-align:center;overflow:hidden}
+.candle{width:100px;height:250px;background:linear-gradient(#ffe082,#ffc107);margin:100px auto;border-radius:15px;position:relative}
+.wick{position:absolute;top:-15px;left:48px;width:4px;height:18px;background:#222}
+.flame{position:absolute;top:-70px;left:20px;font-size:60px;animation:f .15s infinite alternate}
+@keyframes f{from{transform:rotate(-3deg)}to{transform:rotate(3deg)}}
+#wish,#videoContainer,#cameraSection{display:none}
+video,canvas{max-width:95vw;border-radius:12px}
+.frame{position:absolute;inset:0;border:10px solid gold;border-radius:12px;pointer-events:none}
+</style>
+</head>
+<body>
+
+<div id="candleScene">
+<div class="candle"><div class="wick"></div><div class="flame">🔥</div></div>
+</div>
+
+<div id="wish">
+<h1>🎉 HAPPY BIRTHDAY DEEPAK 🎂</h1>
+</div>
+
+<div id="videoContainer">
+<video id="birthdayVideo" autoplay playsinline controls style="width:100%;height:100vh;object-fit:cover">
+<source src="WhatsApp Video 2026-06-25 at 12.41.00 AM.mp4" type="video/mp4">
+</video>
+</div>
+
+<div id="cameraSection">
+<h1 id="countdown"></h1>
+<div style="position:relative;display:inline-block">
+<video id="cam" autoplay playsinline></video>
+<div class="frame"></div>
+</div>
+<canvas id="canvas"></canvas><br>
+<a id="downloadBtn">Download Photo</a>
+</div>
+
+<script>
+function startParty(){
+ if(navigator.vibrate) navigator.vibrate([200,100,200]);
+ document.getElementById('candleScene').style.display='none';
+ document.getElementById('wish').style.display='block';
+ setTimeout(()=>{
+   document.getElementById('wish').style.display='none';
+   document.getElementById('videoContainer').style.display='block';
+   let v=document.getElementById('birthdayVideo');
+   v.onended=()=>{document.getElementById('videoContainer').style.display='none';openCamera();}
+ },1500);
+}
+
+async function startMic(){
+ try{
+ const s=await navigator.mediaDevices.getUserMedia({audio:true});
+ const c=new (window.AudioContext||window.webkitAudioContext)();
+ const a=c.createAnalyser();
+ c.createMediaStreamSource(s).connect(a);
+ const d=new Uint8Array(a.frequencyBinCount);
+ (function chk(){
+   a.getByteFrequencyData(d);
+   let avg=d.reduce((x,y)=>x+y,0)/d.length;
+   if(avg>35){s.getTracks().forEach(t=>t.stop());startParty();return;}
+   requestAnimationFrame(chk);
+ })();
+ }catch(e){}
+}
+
+async function openCamera(){
+ document.getElementById('cameraSection').style.display='block';
+ const s=await navigator.mediaDevices.getUserMedia({video:true});
+ cam.srcObject=s;
+ let n=3; countdown.innerText=n;
+ let t=setInterval(()=>{
+  n--; countdown.innerText=n>0?n:'📸';
+  if(n<0){clearInterval(t);capturePhoto();}
+ },1000);
+}
+
+function capturePhoto(){
+ canvas.width=cam.videoWidth; canvas.height=cam.videoHeight;
+ let ctx=canvas.getContext('2d');
+ ctx.drawImage(cam,0,0);
+ ctx.strokeStyle='gold'; ctx.lineWidth=10;
+ ctx.strokeRect(0,0,canvas.width,canvas.height);
+ ctx.fillStyle='gold'; ctx.font='28px Arial';
+ ctx.fillText('HAPPY BIRTHDAY DEEPAK',20,40);
+ downloadBtn.href=canvas.toDataURL('image/png');
+ downloadBtn.download='BirthdayPhoto.png';
+}
+
+window.onload=startMic;
+</script>
+</body></html>
